@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Bookmarks</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Your Bookmarks</h1>
+    </header>
+    <main id="bookmarksContainer" class="bookmarks-container">
+        <!-- Bookmark cards will be inserted here by JavaScript -->
+    </main>
+    <footer>
+        <p>&copy; 2023 Your Bookmark App</p>
+    </footer>
+    <script>
+        const bookmarks = [
+            { name: "Google", url: "https://google.com" },
+            { name: "Naver", url: "https://naver.com" },
+            { name: "GitHub", url: "https://github.com" }
+        ];
+
+        const bookmarksContainer = document.getElementById('bookmarksContainer');
+
+        bookmarks.forEach(bookmark => {
+            const card = document.createElement('div');
+            card.className = 'bookmark-card'; // For styling
+
+            const link = document.createElement('a');
+            link.href = bookmark.url;
+            link.textContent = bookmark.name;
+            link.target = '_blank'; // Open in new tab
+
+            card.appendChild(link);
+            bookmarksContainer.appendChild(card);
+        });
+    </script>
+</body>
+</html>
