@@ -20,18 +20,29 @@
             </div>
             <button type="submit">Login</button>
         </form>
+        <p>Don't have an account? <a href="signup.html">회원가입</a></p>
     </div>
+
+    <script src="userdata.js"></script>
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent actual form submission
+            event.preventDefault();
             const username = event.target.username.value;
             const password = event.target.password.value;
 
-            // Hardcoded credentials
-            if (username === 'user' && password === 'password') {
+            if (!username || !password) {
+                alert('Please enter both username and password.');
+                return;
+            }
+
+            const response = loginUser(username, password);
+
+            if (response.success) {
+                // Store current user in session/localStorage for other pages to use
+                sessionStorage.setItem('currentUser', username);
                 window.location.href = 'bookmarks.html'; // Redirect to bookmarks page
             } else {
-                alert('Invalid username or password');
+                alert(response.message);
             }
         });
     </script>
