@@ -3,39 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Bookmarks</title>
+    <title>My Bookmarks</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>Your Bookmarks</h1>
-    </header>
-    <main id="bookmarksContainer" class="bookmarks-container">
-        <!-- Bookmark cards will be inserted here by JavaScript -->
-    </main>
-    <footer>
-        <p>&copy; 2023 Your Bookmark App</p>
-    </footer>
+    <div class="container"> <!-- Or any other appropriate container class -->
+        <h2 id="welcomeMessage">My Bookmarks</h2>
+        <button id="logoutButton">Logout</button>
+        <hr>
+        <div id="bookmarksList">
+            <!-- Bookmarks will be loaded here -->
+        </div>
+        <!-- Simple form to add bookmarks (optional, can be added later) -->
+        <!--
+        <form id="addBookmarkForm">
+            <h3>Add New Bookmark</h3>
+            <div>
+                <label for="bookmarkName">Name:</label>
+                <input type="text" id="bookmarkName" required>
+            </div>
+            <div>
+                <label for="bookmarkUrl">URL:</label>
+                <input type="url" id="bookmarkUrl" required>
+            </div>
+            <button type="submit">Add Bookmark</button>
+        </form>
+        -->
+    </div>
+
+    <script src="userdata.js"></script>
     <script>
-        const bookmarks = [
-            { name: "Google", url: "https://google.com" },
-            { name: "Naver", url: "https://naver.com" },
-            { name: "GitHub", url: "https://github.com" }
-        ];
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUser = sessionStorage.getItem('currentUser');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const bookmarksListDiv = document.getElementById('bookmarksList');
+            const logoutButton = document.getElementById('logoutButton');
 
-        const bookmarksContainer = document.getElementById('bookmarksContainer');
+            if (!currentUser) {
+                window.location.href = 'index.html';
+                return; // Stop script execution if not logged in
+            }
 
-        bookmarks.forEach(bookmark => {
-            const card = document.createElement('div');
-            card.className = 'bookmark-card'; // For styling
+            welcomeMessage.textContent = \`Welcome, \${currentUser}! Your Bookmarks:\`;
 
-            const link = document.createElement('a');
-            link.href = bookmark.url;
-            link.textContent = bookmark.name;
-            link.target = '_blank'; // Open in new tab
+            const bookmarks = loadUserBookmarks(currentUser);
 
-            card.appendChild(link);
-            bookmarksContainer.appendChild(card);
+            if (bookmarks && bookmarks.length > 0) {
+                const ul = document.createElement('ul');
+                bookmarks.forEach(bookmark => {
+                    const li = document.createElement('li');
+                    // Assuming bookmark is an object like {name: 'Google', url: 'https://google.com'}
+                    // For now, userdata.js stores bookmarks as an array of strings.
+                    // Adjusting to expect an array of strings for simplicity first.
+                    // If bookmarks are just URLs (strings):
+                    const a = document.createElement('a');
+                    a.href = bookmark; // Assuming bookmark is a URL string
+                    a.textContent = bookmark;
+                    a.target = '_blank'; // Open in new tab
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
+                bookmarksListDiv.appendChild(ul);
+            } else {
+                bookmarksListDiv.textContent = 'You have no bookmarks yet.';
+            }
+
+            logoutButton.addEventListener('click', function() {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            });
+
+            // Placeholder for adding bookmarks - connect to saveUserBookmarks
+            // This part is more complex as it requires form handling and updating userdata.js
+            // For now, the focus is on loading/displaying and logout.
+            /*
+            const addBookmarkForm = document.getElementById('addBookmarkForm');
+            if(addBookmarkForm) { // Check if form exists
+                addBookmarkForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    const name = document.getElementById('bookmarkName').value;
+                    const url = document.getElementById('bookmarkUrl').value;
+                    // For now, let's assume bookmarks are just an array of URLs
+                    // This structure needs to be consistent with what saveUserBookmarks expects
+                    // and how loadUserBookmarks provides it.
+                    // Modifying to save a simple URL string:
+                    const currentBookmarks = loadUserBookmarks(currentUser);
+                    currentBookmarks.push(url); // Add new URL
+                    saveUserBookmarks(currentUser, currentBookmarks);
+                    alert('Bookmark added!');
+                    window.location.reload(); // Refresh to show new bookmark
+                });
+            }
+            */
         });
     </script>
 </body>
