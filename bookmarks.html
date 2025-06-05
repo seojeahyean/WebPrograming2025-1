@@ -10,25 +10,31 @@
     <div class="container"> <!-- Or any other appropriate container class -->
         <h2 id="welcomeMessage">My Bookmarks</h2>
         <button id="logoutButton">Logout</button>
+        <button id="showAddBookmarkModalBtn" style="margin-left: 10px;">Add Bookmark</button>
         <hr>
         <div id="bookmarksList">
             <!-- Bookmarks will be loaded here -->
         </div>
-        <!-- Simple form to add bookmarks (optional, can be added later) -->
-        <!--
-        <form id="addBookmarkForm">
-            <h3>Add New Bookmark</h3>
-            <div>
-                <label for="bookmarkName">Name:</label>
-                <input type="text" id="bookmarkName" required>
+
+        <!-- Add Bookmark Modal -->
+        <div id="addBookmarkModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3>Add New Bookmark</h3>
+                <form id="addBookmarkForm">
+                    <div>
+                        <label for="bookmarkName">Name:</label>
+                        <input type="text" id="bookmarkName" name="bookmarkName" required>
+                    </div>
+                    <div>
+                        <label for="bookmarkUrl">URL:</label>
+                        <input type="url" id="bookmarkUrl" name="bookmarkUrl" required>
+                    </div>
+                    <button type="submit">Save Bookmark</button>
+                    <!-- <button type="button" class="cancel-btn">Cancel</button> -->
+                </form>
             </div>
-            <div>
-                <label for="bookmarkUrl">URL:</label>
-                <input type="url" id="bookmarkUrl" required>
-            </div>
-            <button type="submit">Add Bookmark</button>
-        </form>
-        -->
+        </div>
     </div>
 
     <script src="userdata.js"></script>
@@ -36,8 +42,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             const currentUser = sessionStorage.getItem('currentUser');
             const welcomeMessage = document.getElementById('welcomeMessage');
-            const bookmarksListDiv = document.getElementById('bookmarksList');
-            const logoutButton = document.getElementById('logoutButton');
+            // const bookmarksListDiv = document.getElementById('bookmarksList'); // Reference now inside renderBookmarks
+            const logoutButton = document.getElementById('logoutButton'); // Existing
+
+            // **New Modal DOM Elements**
+            const addBookmarkModal = document.getElementById('addBookmarkModal');
+            const showAddBookmarkModalBtn = document.getElementById('showAddBookmarkModalBtn');
+            const closeButton = document.querySelector('#addBookmarkModal .close-button');
+            const addBookmarkForm = document.getElementById('addBookmarkForm'); // For next step
 
             if (!currentUser) {
                 window.location.href = 'index.html';
@@ -46,20 +58,120 @@
 
             welcomeMessage.textContent = \`Welcome, \${currentUser}! Your Bookmarks:\`;
 
-            const bookmarks = loadUserBookmarks(currentUser);
+            // Initial rendering of bookmarks on page load - will be handled by renderBookmarks
+            // const bookmarks = loadUserBookmarks(currentUser); // Old loading logic
+            // (Old display logic removed here, will be handled by renderBookmarks)
+
+            logoutButton.addEventListener('click', function() {
+                sessionStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            });
+
+            // **New Modal Event Listeners**
+            if (showAddBookmarkModalBtn) { // Ensure button exists
+                showAddBookmarkModalBtn.addEventListener('click', function() {
+                    if (addBookmarkModal) addBookmarkModal.style.display = 'block';
+                });
+            }
+
+            if (closeButton) { // Ensure close button exists
+                closeButton.addEventListener('click', function() {
+                    if (addBookmarkModal) addBookmarkModal.style.display = 'none';
+                });
+            }
+
+            // Close modal if user clicks outside of the modal content
+            window.addEventListener('click', function(event) {
+                if (event.target == addBookmarkModal) {
+                    if (addBookmarkModal) addBookmarkModal.style.display = 'none';
+                }
+            });
+
+            // Bookmark saving logic will be attached to addBookmarkForm in the next step
+            if (addBookmarkForm) {
+                addBookmarkForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+
+                    const currentUserForSave = sessionStorage.getItem('currentUser'); // Re-fetch to be safe
+                    if (!currentUserForSave) {
+                        alert("Error: No current user session. Please log in again.");
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    const nameInput = document.getElementById('bookmarkName');
+                    const urlInput = document.getElementById('bookmarkUrl');
+
+                    const bookmarkName = nameInput.value.trim();
+                    let bookmarkUrl = urlInput.value.trim();
+
+                    if (!bookmarkUrl) {
+                        alert('Bookmark URL cannot be empty.');
+                        return;
+                    }
+
+                    // Attempt to construct a URL to validate it, and prepend https:// if missing protocol
+                    if (!bookmarkUrl.startsWith('http://') && !bookmarkUrl.startsWith('https://')) {
+                        bookmarkUrl = 'https://' + bookmarkUrl;
+                    }
+
+                    try {
+                        new URL(bookmarkUrl); // Check if it's a valid URL structure after potential correction
+                    } catch (_) {
+                        alert('Invalid URL format. Please ensure the URL is correct (e.g., https://example.com).');
+                        return;
+                    }
+
+                    const newBookmark = {
+                        name: bookmarkName || bookmarkUrl, // Default name to URL if empty
+                        url: bookmarkUrl
+                    };
+
+                    let currentBookmarks = loadUserBookmarks(currentUserForSave);
+                    currentBookmarks.push(newBookmark);
+                    saveUserBookmarks(currentUserForSave, currentBookmarks);
+
+                    if (addBookmarkModal) addBookmarkModal.style.display = 'none';
+                    addBookmarkForm.reset();
+
+                    renderBookmarks(currentUserForSave); // Call to refresh the list
+                });
+            }
+
+            // Initial rendering of bookmarks on page load
+            if (currentUser) { // Ensure currentUser is defined before initial render
+                renderBookmarks(currentUser);
+            }
+        }); // End of DOMContentLoaded
+
+        // The renderBookmarks function will be defined in the next step.
+        // For now, if it's called, it won't do anything yet or might cause an error if not defined.
+        // We can add a placeholder for it.
+        function renderBookmarks(username) {
+            const bookmarksListDiv = document.getElementById('bookmarksList');
+            if (!bookmarksListDiv) {
+                console.error('Bookmarks list container not found!');
+                return;
+            }
+            bookmarksListDiv.innerHTML = ''; // Clear current list
+
+            const bookmarks = loadUserBookmarks(username);
 
             if (bookmarks && bookmarks.length > 0) {
                 const ul = document.createElement('ul');
                 bookmarks.forEach(bookmark => {
                     const li = document.createElement('li');
-                    // Assuming bookmark is an object like {name: 'Google', url: 'https://google.com'}
-                    // For now, userdata.js stores bookmarks as an array of strings.
-                    // Adjusting to expect an array of strings for simplicity first.
-                    // If bookmarks are just URLs (strings):
                     const a = document.createElement('a');
-                    a.href = bookmark; // Assuming bookmark is a URL string
-                    a.textContent = bookmark;
-                    a.target = '_blank'; // Open in new tab
+
+                    // Ensure URL has a scheme for href. If not, prepend https://
+                    let url = bookmark.url;
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        url = 'https://' + url;
+                    }
+                    a.href = url;
+                    a.textContent = bookmark.name; // Display the name
+                    a.target = '_blank'; // Open in a new tab
+
                     li.appendChild(a);
                     ul.appendChild(li);
                 });
@@ -67,35 +179,7 @@
             } else {
                 bookmarksListDiv.textContent = 'You have no bookmarks yet.';
             }
-
-            logoutButton.addEventListener('click', function() {
-                sessionStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
-            });
-
-            // Placeholder for adding bookmarks - connect to saveUserBookmarks
-            // This part is more complex as it requires form handling and updating userdata.js
-            // For now, the focus is on loading/displaying and logout.
-            /*
-            const addBookmarkForm = document.getElementById('addBookmarkForm');
-            if(addBookmarkForm) { // Check if form exists
-                addBookmarkForm.addEventListener('submit', function(event) {
-                    event.preventDefault();
-                    const name = document.getElementById('bookmarkName').value;
-                    const url = document.getElementById('bookmarkUrl').value;
-                    // For now, let's assume bookmarks are just an array of URLs
-                    // This structure needs to be consistent with what saveUserBookmarks expects
-                    // and how loadUserBookmarks provides it.
-                    // Modifying to save a simple URL string:
-                    const currentBookmarks = loadUserBookmarks(currentUser);
-                    currentBookmarks.push(url); // Add new URL
-                    saveUserBookmarks(currentUser, currentBookmarks);
-                    alert('Bookmark added!');
-                    window.location.reload(); // Refresh to show new bookmark
-                });
-            }
-            */
-        });
+        }
     </script>
 </body>
 </html>
