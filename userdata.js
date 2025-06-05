@@ -41,20 +41,31 @@ function loginUser(username, password) {
     return { success: false, message: 'Invalid username or password.' };
 }
 
+/**
+ * Saves the array of bookmark objects for a user.
+ * @param {string} username - The username.
+ * @param {Array<{name: string, url: string}>} bookmarks - The array of bookmark objects.
+ * @returns {{success: boolean, message?: string}}
+ */
 function saveUserBookmarks(username, bookmarks) {
     const users = getUserData();
     if (users[username]) {
-        users[username].bookmarks = bookmarks;
+        users[username].bookmarks = bookmarks; // Will now store array of objects
         setUserData(users);
         return { success: true, message: 'Bookmarks saved.' };
     }
     return { success: false, message: 'User not found.' };
 }
 
+/**
+ * Loads the array of bookmark objects for a user.
+ * @param {string} username - The username.
+ * @returns {Array<{name: string, url: string}>} The array of bookmark objects, or an empty array.
+ */
 function loadUserBookmarks(username) {
     const users = getUserData();
-    if (users[username]) {
-        return users[username].bookmarks || [];
+    if (users[username] && users[username].bookmarks) {
+        return users[username].bookmarks; // Will now return array of objects
     }
-    return []; // Return empty array if user or bookmarks not found
+    return [];
 }
