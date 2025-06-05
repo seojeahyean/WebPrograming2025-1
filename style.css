@@ -83,9 +83,52 @@ header {
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     margin: 10px;
-    padding: 20px;
+    padding: 20px 10px;
     width: 200px;
     text-align: center;
+    position: relative;
+}
+
+.bookmark-thumbnail {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.bookmark-menu {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.bookmark-menu .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    padding: 5px 0;
+    z-index: 10;
+}
+
+.bookmark-menu.active .dropdown-content {
+    display: block;
+}
+
+.dropdown-content button {
+    background: none;
+    border: none;
+    padding: 5px 10px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-content button:hover {
+    background-color: #eee;
 }
 
 .bookmark-card a {

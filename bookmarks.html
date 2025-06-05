@@ -12,7 +12,7 @@
         <button id="logoutButton">Logout</button>
         <button id="showAddBookmarkModalBtn" style="margin-left: 10px;">Add Bookmark</button>
         <hr>
-        <div id="bookmarksList">
+        <div id="bookmarksList" class="bookmarks-container">
             <!-- Bookmarks will be loaded here -->
         </div>
 
@@ -158,27 +158,76 @@
             const bookmarks = loadUserBookmarks(username);
 
             if (bookmarks && bookmarks.length > 0) {
-                const ul = document.createElement('ul');
-                bookmarks.forEach(bookmark => {
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
+                bookmarks.forEach((bookmark, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'bookmark-card';
 
-                    // Ensure URL has a scheme for href. If not, prepend https://
-                    let url = bookmark.url;
-                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                        url = 'https://' + url;
+                    // Dropdown menu
+                    const menu = document.createElement('div');
+                    menu.className = 'bookmark-menu';
+                    menu.innerHTML = '&#x22EE;';
+                    menu.addEventListener('click', () => {
+                        menu.classList.toggle('active');
+                    });
+
+                    const dropdown = document.createElement('div');
+                    dropdown.className = 'dropdown-content';
+
+                    const copyBtn = document.createElement('button');
+                    copyBtn.textContent = 'Copy URL';
+                    copyBtn.addEventListener('click', () => {
+                        const url = ensureUrlScheme(bookmark.url);
+                        navigator.clipboard.writeText(url);
+                        menu.classList.remove('active');
+                    });
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.addEventListener('click', () => {
+                        const currentBookmarks = loadUserBookmarks(username);
+                        currentBookmarks.splice(index, 1);
+                        saveUserBookmarks(username, currentBookmarks);
+                        renderBookmarks(username);
+                    });
+
+                    dropdown.appendChild(copyBtn);
+                    dropdown.appendChild(deleteBtn);
+                    menu.appendChild(dropdown);
+                    card.appendChild(menu);
+
+                    // Thumbnail/icon
+                    const img = document.createElement('img');
+                    img.className = 'bookmark-thumbnail';
+                    const urlWithScheme = ensureUrlScheme(bookmark.url);
+                    try {
+                        const hostname = new URL(urlWithScheme).hostname;
+                        img.src = `https://www.google.com/s2/favicons?domain=${hostname}`;
+                    } catch (e) {
+                        img.src = '';
                     }
-                    a.href = url;
-                    a.textContent = bookmark.name; // Display the name
-                    a.target = '_blank'; // Open in a new tab
+                    card.appendChild(img);
 
-                    li.appendChild(a);
-                    ul.appendChild(li);
+                    // Name
+                    const nameDiv = document.createElement('div');
+                    const a = document.createElement('a');
+                    a.href = urlWithScheme;
+                    a.textContent = bookmark.name;
+                    a.target = '_blank';
+                    nameDiv.appendChild(a);
+                    card.appendChild(nameDiv);
+
+                    bookmarksListDiv.appendChild(card);
                 });
-                bookmarksListDiv.appendChild(ul);
             } else {
                 bookmarksListDiv.textContent = 'You have no bookmarks yet.';
             }
+        }
+
+        function ensureUrlScheme(url) {
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                return 'https://' + url;
+            }
+            return url;
         }
     </script>
 </body>
