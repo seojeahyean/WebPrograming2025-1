@@ -15,6 +15,9 @@ function setUserData(data) {
 }
 
 function registerUser(username, password, email) {
+    username = username.trim();
+    password = password.trim();
+    email = email.trim();
     const users = getUserData();
 
     // Check for existing username or email
@@ -34,6 +37,8 @@ function registerUser(username, password, email) {
 }
 
 function loginUser(username, password) {
+    username = username.trim();
+    password = password.trim();
     const users = getUserData();
     if (users[username] && users[username].password === password) { // In a real app, compare hashed passwords!
         return { success: true, message: 'Login successful.' };
